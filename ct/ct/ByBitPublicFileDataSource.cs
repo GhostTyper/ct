@@ -35,6 +35,8 @@ namespace ct
 
             lines.Reverse();
             DateTime? previousStamp = null;
+            Candle? candle = null;
+            double lastPrice = 0.0;
 
             foreach (string record in lines)
             {
@@ -51,6 +53,37 @@ namespace ct
                 double volume = double.Parse(parts[3], CultureInfo.InvariantCulture);
                 TradeDirection direction = parts[2] == "Buy" ? TradeDirection.Long : TradeDirection.Short;
 
+                DateTime minuteStamp = new DateTime(stamp.Year, stamp.Month, stamp.Day, stamp.Hour, stamp.Minute, 0, DateTimeKind.Utc);
+
+                if (candle == null)
+                {
+                    candle = new Candle(minuteStamp, price, price, price, price, false, TimeFrame.Minutes1, 0.0);
+                    candle.AddTrade(stamp, price, volume);
+                    lastPrice = price;
+                }
+                else
+                {
+                    while (minuteStamp > candle.Stamp)
+                    {
+                        yield return new CandleMessage(candle);
+                        lastPrice = candle.Close;
+                        DateTime nextMinuteStamp = candle.Stamp.AddMinutes(1);
+                        if (nextMinuteStamp < minuteStamp)
+                        {
+                            candle = new Candle(nextMinuteStamp, lastPrice, lastPrice, lastPrice, lastPrice, false, TimeFrame.Minutes1, 0.0);
+                            yield return new CandleMessage(candle);
+                            lastPrice = candle.Close;
+                        }
+                        else
+                        {
+                            candle = new Candle(nextMinuteStamp, lastPrice, lastPrice, lastPrice, lastPrice, false, TimeFrame.Minutes1, 0.0);
+                        }
+                    }
+
+                    candle.AddTrade(stamp, price, volume);
+                    lastPrice = price;
+                }
+
                 if (previousStamp.HasValue)
                 {
                     TimeSpan gap = stamp - previousStamp.Value;
@@ -63,7 +96,13 @@ namespace ct
                 }
 
                 yield return new TradeMessage(stamp, price, price, volume, direction);
+                yield return new CandleMessage(candle);
                 previousStamp = stamp;
+            }
+
+            if (candle != null)
+            {
+                yield return new CandleMessage(candle);
             }
 
             if (previousStamp.HasValue)

@@ -8,6 +8,7 @@ namespace ct
 {
     public enum MessageKind
     {
+        Candle,
         Trade,
         Time,
         EndOfData

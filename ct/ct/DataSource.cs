@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace ct
 {
-    internal class DataSource
+    public class DataSource
     {
+        /// <summary>
+        /// Specifies if the data source is live (data from an exchange) or from a offline file for back-testing.
+        /// </summary>
+        public virtual bool Live => false;
     }
 }

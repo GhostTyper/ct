@@ -8,6 +8,8 @@ namespace ct
 {
     public enum MessageKind
     {
-        Trade
+        Trade,
+        Time,
+        EndOfData
     }
 }

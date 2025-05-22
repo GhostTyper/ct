@@ -12,5 +12,10 @@ namespace ct
         }
 
         public override MessageKind Kind => MessageKind.EndOfData;
+
+        public override string ToString()
+        {
+            return $"EndOfData {Stamp:O}";
+        }
     }
 }

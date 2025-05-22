@@ -12,5 +12,10 @@ namespace ct
         }
 
         public override MessageKind Kind => MessageKind.Time;
+
+        public override string ToString()
+        {
+            return $"Time {Stamp:O}";
+        }
     }
 }

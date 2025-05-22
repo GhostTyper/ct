@@ -12,12 +12,21 @@ namespace ct
         public readonly double StartPrice;
         public readonly double EndPrice;
         public readonly double Volume;
+        public readonly TradeDirection Direction;
 
-        public TradeMessage(DateTime stamp, double startPrice, double endPrice, double volume) : base(stamp)
+        public TradeMessage(DateTime stamp, double startPrice, double endPrice, double volume, TradeDirection direction) : base(stamp)
         {
-
+            StartPrice = startPrice;
+            EndPrice = endPrice;
+            Direction = direction;
+            Volume = volume;
         }
 
         public override MessageKind Kind => MessageKind.Trade;
+
+        public override string ToString()
+        {
+            return $"Trade {Stamp:O} start={StartPrice} end={EndPrice} volume={Volume} direction={Direction}";
+        }
     }
 }

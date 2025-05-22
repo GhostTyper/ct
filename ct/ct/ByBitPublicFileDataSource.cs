@@ -1,0 +1,75 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ct
+{
+    /// <summary>
+    /// Data source reading trades from a ByBit public data file.
+    /// </summary>
+    public class ByBitPublicFileDataSource : DataSource
+    {
+        private readonly Stream _stream;
+
+        public ByBitPublicFileDataSource(Stream stream)
+        {
+            _stream = stream;
+        }
+
+        public override async IAsyncEnumerable<Message> GetMessagesAsync()
+        {
+            using StreamReader reader = new StreamReader(_stream, Encoding.UTF8, leaveOpen: true);
+            List<string> lines = new List<string>();
+
+            string? line = await reader.ReadLineAsync();
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (line.Length > 0)
+                {
+                    lines.Add(line);
+                }
+            }
+
+            lines.Reverse();
+            DateTime? previousStamp = null;
+
+            foreach (string record in lines)
+            {
+                string[] parts = record.Split(',');
+                if (parts.Length < 5)
+                {
+                    continue;
+                }
+
+                double timestampSeconds = double.Parse(parts[0], CultureInfo.InvariantCulture);
+                long milliseconds = (long)(timestampSeconds * 1000.0);
+                DateTime stamp = DateTimeOffset.FromUnixTimeMilliseconds(milliseconds).UtcDateTime;
+                double price = double.Parse(parts[4], CultureInfo.InvariantCulture);
+                double volume = double.Parse(parts[3], CultureInfo.InvariantCulture);
+                TradeDirection direction = parts[2] == "Buy" ? TradeDirection.Long : TradeDirection.Short;
+
+                if (previousStamp.HasValue)
+                {
+                    TimeSpan gap = stamp - previousStamp.Value;
+                    int seconds = (int)gap.TotalSeconds;
+                    for (int i = 1; i < seconds; i++)
+                    {
+                        DateTime timeStamp = previousStamp.Value.AddSeconds(i);
+                        yield return new TimeMessage(timeStamp);
+                    }
+                }
+
+                yield return new TradeMessage(stamp, price, price, volume, direction);
+                previousStamp = stamp;
+            }
+
+            if (previousStamp.HasValue)
+            {
+                yield return new EndOfDataMessage(previousStamp.Value);
+            }
+        }
+    }
+}

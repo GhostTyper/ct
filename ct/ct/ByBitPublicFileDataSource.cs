@@ -51,6 +51,14 @@ namespace ct
             Candle? candle = null;
             double lastPrice = 0.0;
 
+            bool hasAggregate = false;
+            DateTime aggregateStamp = DateTime.MinValue;
+            TradeDirection aggregateDirection = TradeDirection.Long;
+            double aggregateStartPrice = 0.0;
+            double aggregateEndPrice = 0.0;
+            double aggregateVolume = 0.0;
+            int aggregateCount = 0;
+
             foreach (string record in lines)
             {
                 string[] parts = record.Split(',');
@@ -97,9 +105,29 @@ namespace ct
                     lastPrice = price;
                 }
 
+                if (!hasAggregate)
+                {
+                    aggregateStamp = stamp;
+                    aggregateDirection = direction;
+                    aggregateStartPrice = price;
+                    aggregateEndPrice = price;
+                    aggregateVolume = volume;
+                    aggregateCount = 1;
+                    hasAggregate = true;
+                    continue;
+                }
+
+                if (stamp == aggregateStamp && direction == aggregateDirection)
+                {
+                    aggregateEndPrice = price;
+                    aggregateVolume += volume;
+                    aggregateCount += 1;
+                    continue;
+                }
+
                 if (previousStamp.HasValue)
                 {
-                    TimeSpan gap = stamp - previousStamp.Value;
+                    TimeSpan gap = aggregateStamp - previousStamp.Value;
                     int seconds = (int)gap.TotalSeconds;
                     for (int i = 1; i < seconds; i++)
                     {
@@ -108,9 +136,34 @@ namespace ct
                     }
                 }
 
-                yield return new TradeMessage(stamp, price, price, volume, direction);
+                yield return new TradeMessage(aggregateStamp, aggregateStartPrice, aggregateEndPrice, aggregateVolume, aggregateDirection, aggregateCount);
                 yield return new CandleMessage(candle);
-                previousStamp = stamp;
+                previousStamp = aggregateStamp;
+
+                aggregateStamp = stamp;
+                aggregateDirection = direction;
+                aggregateStartPrice = price;
+                aggregateEndPrice = price;
+                aggregateVolume = volume;
+                aggregateCount = 1;
+            }
+
+            if (hasAggregate)
+            {
+                if (previousStamp.HasValue)
+                {
+                    TimeSpan gap = aggregateStamp - previousStamp.Value;
+                    int seconds = (int)gap.TotalSeconds;
+                    for (int i = 1; i < seconds; i++)
+                    {
+                        DateTime timeStamp = previousStamp.Value.AddSeconds(i);
+                        yield return new TimeMessage(timeStamp);
+                    }
+                }
+
+                yield return new TradeMessage(aggregateStamp, aggregateStartPrice, aggregateEndPrice, aggregateVolume, aggregateDirection, aggregateCount);
+                yield return new CandleMessage(candle);
+                previousStamp = aggregateStamp;
             }
 
             if (candle != null)

@@ -75,6 +75,9 @@ namespace ct
         private DateTime? _firstHighTime;
         private DateTime? _firstLowTime;
 
+        public DateTime? FirstHighTime => _firstHighTime;
+        public DateTime? FirstLowTime => _firstLowTime;
+
         public Candle(DateTime stamp, double open, double high, double low, double close, bool highBeforeLow, TimeFrame timeFrame, double volume)
         {
             _stamp = stamp;

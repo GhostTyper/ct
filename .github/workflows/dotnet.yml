@@ -18,5 +18,15 @@ jobs:
         run: dotnet restore ct/ct.sln
       - name: Build
         run: dotnet build ct/ct.sln --configuration Release --no-restore
-      - name: Run tests
-        run: dotnet run --project ct/ct.tests/ct.tests.csproj --configuration Release
+      - name: Order2020IsChronological
+        run: dotnet test ct/ct.tests/ct.tests.csproj --no-build --configuration Release --filter FullyQualifiedName=ct.tests.ByBitTests.Order2020IsChronological
+      - name: Order2022IsChronological
+        run: dotnet test ct/ct.tests/ct.tests.csproj --no-build --configuration Release --filter FullyQualifiedName=ct.tests.ByBitTests.Order2022IsChronological
+      - name: Order2025IsChronological
+        run: dotnet test ct/ct.tests/ct.tests.csproj --no-build --configuration Release --filter FullyQualifiedName=ct.tests.ByBitTests.Order2025IsChronological
+      - name: Volume2020Matches
+        run: dotnet test ct/ct.tests/ct.tests.csproj --no-build --configuration Release --filter FullyQualifiedName=ct.tests.ByBitTests.Volume2020Matches
+      - name: Volume2022Matches
+        run: dotnet test ct/ct.tests/ct.tests.csproj --no-build --configuration Release --filter FullyQualifiedName=ct.tests.ByBitTests.Volume2022Matches
+      - name: Volume2025Matches
+        run: dotnet test ct/ct.tests/ct.tests.csproj --no-build --configuration Release --filter FullyQualifiedName=ct.tests.ByBitTests.Volume2025Matches

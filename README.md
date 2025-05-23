@@ -2,7 +2,7 @@
 
 This repository contains a small console application written in C# using .NET 8.0. It demonstrates reading and aggregating trading data from Bybit.
 
-Please note that this is a small vibe coding test using OpenAI's Codex.
+Please note that this is a small vibe coding test using OpenAI's Codex and probably won't be continued. So it's not a serious project. You can see what I did [here](https://www.youtube.com/watch?v=umNM6bSf23k).
 
 ## Features
 - Reads trade data from compressed CSV files located in `ct/ct/bybit`.

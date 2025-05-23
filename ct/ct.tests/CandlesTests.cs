@@ -69,5 +69,31 @@ namespace ct.tests
             Candles candles = new Candles(TimeFrame.Minutes5);
             Assert.Throws<ArgumentException>(() => new List<Candle>(candles.Enumerate(TimeFrame.Minutes1, DateTime.UnixEpoch, DateTime.UnixEpoch.AddMinutes(5))));
         }
+
+        [Fact]
+        public void ForeachAggregatesToFiveMinutes()
+        {
+            DateTime start = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            Candles candles = new Candles(TimeFrame.Minutes1);
+            for (int i = 0; i < 10; i++)
+            {
+                DateTime stamp = start.AddMinutes(i).AddSeconds(10);
+                candles.AddTrade(stamp, i + 1.0, 1.0);
+            }
+
+            List<Candle> result = new List<Candle>();
+            foreach (Candle candle in candles.Enumerate(TimeFrame.Minutes5, start, start.AddMinutes(10)))
+            {
+                result.Add(candle);
+            }
+
+            Assert.Equal(2, result.Count);
+            Assert.Equal(1.0, result[0].Open);
+            Assert.Equal(5.0, result[0].Close);
+            Assert.Equal(6.0, result[1].Open);
+            Assert.Equal(10.0, result[1].Close);
+            Assert.Equal(5.0, result[0].Volume);
+            Assert.Equal(5.0, result[1].Volume);
+        }
     }
 }

@@ -33,7 +33,20 @@ namespace ct
                 }
             }
 
-            lines.Reverse();
+            if (lines.Count > 1)
+            {
+                string[] firstParts = lines[0].Split(',');
+                string[] lastParts = lines[^1].Split(',');
+                if (firstParts.Length > 0 && lastParts.Length > 0)
+                {
+                    double firstStamp = double.Parse(firstParts[0], CultureInfo.InvariantCulture);
+                    double lastStamp = double.Parse(lastParts[0], CultureInfo.InvariantCulture);
+                    if (firstStamp > lastStamp)
+                    {
+                        lines.Reverse();
+                    }
+                }
+            }
             DateTime? previousStamp = null;
             Candle? candle = null;
             double lastPrice = 0.0;
